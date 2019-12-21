@@ -13,15 +13,39 @@ class HomeTableViewController: UITableViewController {
     var tweetArray = [NSDictionary]()
     var numberOfTweet: Int!
     
+    let myRefreshControl = UIRefreshControl()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadTweet()
+        loadTweets()
+        //implementing pull to refresh
+        myRefreshControl.addTarget(self, action: #selector(loadTweets), for: .valueChanged)
+        tableView.refreshControl = myRefreshControl
     }
     
-    func loadTweet () {
-        //call api
-        let timelineUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-        let params = ["count": 10]
+    //api to fetch tweets
+    let timelineUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+    @objc func loadTweets () {
+        numberOfTweet = 20
+        let params = ["count": numberOfTweet]
+        TwitterAPICaller.client?.getDictionariesRequest(url: timelineUrl, parameters: params, success: {(tweets: [NSDictionary]) in
+            self.tweetArray.removeAll()
+            for tweet in tweets {
+                self.tweetArray.append(tweet)
+            }
+            
+            self.tableView.reloadData()
+            //taking out the refreshing wheel icon after pulled to refresh
+            self.myRefreshControl.endRefreshing()
+            
+        }, failure: { (Error) in
+            print("Could not retrieve tweets :(")
+        })
+    }
+
+    func loadMoreTweets() {
+        numberOfTweet += 20
+        let params = ["count": numberOfTweet]
         TwitterAPICaller.client?.getDictionariesRequest(url: timelineUrl, parameters: params, success: {(tweets: [NSDictionary]) in
             self.tweetArray.removeAll()
             for tweet in tweets {
@@ -34,7 +58,14 @@ class HomeTableViewController: UITableViewController {
             print("Could not retrieve tweets :(")
         })
     }
-
+    
+    //trigger infinite scrolling
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row + 1 == tweetArray.count {
+            loadMoreTweets()
+        }
+    }
+    
     @IBAction func onLogout(_ sender: Any) {
         TwitterAPICaller.client?.logout()   //log out of twitter
         self.dismiss(animated: true, completion: nil)   //visual indicate you've logged out
