@@ -11,8 +11,8 @@ The following functionality is completed:
 - [x] User can log out.
 - [x] User stays logged in across restarts. 
 - [x] User can view tweets with the user profile picture, username, and tweet text. 
-- [ ] User can pull to refresh.
-- [ ] User can load past tweets infinitely.
+- [x] User can pull to refresh.
+- [x] User can load past tweets infinitely.
 
 ## Video Walkthrough
 
